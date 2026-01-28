@@ -68,7 +68,7 @@ app.use('/uploads', express.static('uploads'));
 
 // Connexion à MySQL
 require('./models/SiteContent'); // Ensure model is loaded before sync
-sequelize.sync({ alter: true })
+sequelize.sync() // Removed { alter: true } to prevent index duplication bug
   .then(() => console.log('MySQL connecté et tables synchronisées'))
   .catch(err => console.error('Erreur MySQL :', err));
 

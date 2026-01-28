@@ -24,4 +24,6 @@ yarn-error.log*
 # Editor
 .vscode
 .idea
-*.swp
+*.zip
+debug_*.js
+clean_*.js
