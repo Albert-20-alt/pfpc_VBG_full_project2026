@@ -1,0 +1,19 @@
+const { Sequelize } = require('sequelize');
+require('dotenv').config();
+
+const sequelize = new Sequelize(
+    process.env.DB_NAME,
+    process.env.DB_USER,
+    process.env.DB_PASSWORD,
+    {
+        host: process.env.DB_HOST,
+        port: process.env.DB_PORT,
+        dialect: 'mysql',
+        logging: false, // Set to console.log to see SQL queries
+        dialectOptions: {
+            socketPath: process.env.DB_SOCKET_PATH || '/Applications/MAMP/tmp/mysql/mysql.sock'
+        }
+    }
+);
+
+module.exports = sequelize;

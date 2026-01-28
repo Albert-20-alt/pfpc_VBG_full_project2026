@@ -1,0 +1,284 @@
+
+import React, { useState, useMemo } from 'react';
+import { motion } from 'framer-motion';
+import Layout from '@/components/Layout';
+import { useAuth } from '@/contexts/AuthContext';
+import { useData } from '@/contexts/DataContext';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { toast } from '@/components/ui/use-toast';
+import { useNavigate } from 'react-router-dom';
+import {
+  Plus, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Users as UsersIcon, FileText as FileTextIcon
+} from 'lucide-react';
+
+import CalendarGrid from '@/components/calendar/CalendarGrid';
+import TaskFormModal from '@/components/calendar/TaskFormModal';
+import UpcomingTasksList from '@/components/calendar/UpcomingTasksList';
+import ConfirmDeleteDialog from '@/components/calendar/ConfirmDeleteDialog';
+
+
+const CalendarPage = () => {
+  const { user } = useAuth();
+  const { tasks, addTask, updateTask, deleteTask, users } = useData();
+  const navigate = useNavigate();
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [showTaskForm, setShowTaskForm] = useState(false);
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [taskToDelete, setTaskToDelete] = useState(null);
+
+  const initialFormData = {
+    title: '', description: '', date: '', time: '', type: 'other',
+    priority: 'medium', assignedTo: parseInt(user.id),
+    participants: user.role === 'super-admin' ? [] : [parseInt(user.id)],
+    location: '', meetingLink: '', relatedCaseId: ''
+  };
+  const [formData, setFormData] = useState(initialFormData);
+
+  const monthNames = [
+    'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+    'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
+  ];
+
+  const tasksForUser = useMemo(() => {
+    if (user.role === 'super-admin') return tasks;
+    if (user.role === 'admin') {
+      return tasks.filter(task => {
+        // Admin can see tasks they're a participant in
+        if (task.participants && Array.isArray(task.participants) && task.participants.map(String).includes(String(user.id))) {
+          return true;
+        }
+        // Admin can see tasks assigned to anyone in their region
+        if (task.assignedTo) {
+          const assignedUser = users.find(u => String(u.id) === String(task.assignedTo));
+          return assignedUser && assignedUser.region === user.region;
+        }
+        return false;
+      });
+    }
+    // Agents can only see tasks they are participants in or assigned to
+    return tasks.filter(task =>
+      (task.participants && Array.isArray(task.participants) && task.participants.map(String).includes(String(user.id))) ||
+      String(task.assignedTo) === String(user.id)
+    );
+  }, [tasks, user, users]);
+
+
+  const handleOpenAddTaskForm = () => {
+    if (user.role === 'agent') {
+      toast({ title: "Action non autorisée", description: "Les agents ne peuvent pas créer de tâches/réunions.", variant: "destructive" });
+      return;
+    }
+    setSelectedTask(null);
+    const defaultAssigned = user.role === 'super-admin' ? '' : parseInt(user.id);
+    const defaultParticipants = user.role === 'super-admin' ? [] : [parseInt(user.id)];
+    setFormData({ ...initialFormData, assignedTo: defaultAssigned, participants: defaultParticipants });
+    setShowTaskForm(true);
+  };
+
+  const handleEditTask = (task) => {
+    if (user.role === 'admin' && task.createdBy && users.find(u => String(u.id) === String(task.createdBy))?.role === 'super-admin') {
+      toast({ title: "Action non autorisée", description: "Les administrateurs ne peuvent pas modifier les tâches/réunions créées par un Super Admin.", variant: "destructive" });
+      return;
+    }
+    if (user.role === 'agent' && task.createdBy !== user.id) {
+      toast({ title: "Action non autorisée", description: "Vous ne pouvez modifier que les tâches que vous avez créées (si applicable) ou celles qui vous sont assignées.", variant: "destructive" });
+      // Agents typically don't create tasks, so this might be redundant if creation is fully blocked.
+      // However, if there's a scenario where an agent *could* create something, this check is useful.
+      // For now, as agents cannot create, this primarily prevents editing tasks assigned by others.
+      return;
+    }
+
+    setSelectedTask(task);
+    setFormData({
+      title: task.title || '',
+      description: task.description || '',
+      date: task.date || '',
+      time: task.time || '',
+      type: task.type || 'meeting',
+      priority: task.priority || 'medium',
+      assignedTo: task.assignedTo || (user.role === 'super-admin' ? '' : user.id),
+      participants: task.participants || (user.role === 'super-admin' ? [] : [user.id]),
+      location: task.location || '',
+      meetingLink: task.meetingLink || '',
+      relatedCaseId: task.relatedCaseId || ''
+    });
+    setShowTaskForm(true);
+  };
+
+  const handleSubmitTask = (taskData) => {
+    console.log('Raw taskData before processing:', taskData);
+
+    const fullTaskData = {
+      ...taskData,
+      assignedTo: taskData.assignedTo ? parseInt(taskData.assignedTo) : null,  // Ensure integer
+      participants: taskData.participants ? taskData.participants.map(id => parseInt(id)) : [],  // Ensure array of integers
+      createdBy: selectedTask ? selectedTask.createdBy : parseInt(user.id), // Preserve original creator on edit, ensure integer
+      creatorName: selectedTask ? selectedTask.creatorName : user.name,
+      status: 'pending'
+    };
+
+    console.log('Processed fullTaskData:', fullTaskData);
+
+    if (selectedTask) {
+      updateTask(selectedTask.id, fullTaskData);
+      toast({ title: "Tâche modifiée", description: "La tâche a été mise à jour." });
+    } else {
+      addTask(fullTaskData);
+      toast({ title: "Tâche créée", description: "La nouvelle tâche a été ajoutée." });
+    }
+    setShowTaskForm(false);
+  };
+
+  const handleDeleteTask = async (taskId) => {
+    if (!selectedTask) return;
+
+    // Permission check: Only creator or super-admin can delete
+    if (user.role !== 'super-admin' && selectedTask.createdBy !== user.id) {
+      toast({
+        title: "Action non autorisée",
+        description: "Seul le créateur ou un Super Admin peut supprimer cette tâche.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer cette tâche?')) {
+      try {
+        await deleteTask(taskId);
+        toast({ title: "Tâche supprimée", description: "La tâche a été supprimée avec succès." });
+        setShowTaskForm(false);
+        setSelectedTask(null);
+      } catch (error) {
+        toast({
+          title: "Erreur",
+          description: "Impossible de supprimer la tâche.",
+          variant: "destructive"
+        });
+      }
+    }
+  };
+
+  const navigateMonth = (direction) => {
+    setCurrentDate(prev => {
+      const newDate = new Date(prev);
+      newDate.setMonth(prev.getMonth() + direction);
+      return newDate;
+    });
+  };
+
+  return (
+    <Layout>
+      <div className="space-y-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative flex flex-col md:flex-row justify-between items-start md:items-center p-8 rounded-3xl overflow-hidden bg-[#0f172a] border border-white/5 shadow-2xl"
+        >
+          {/* Decorative Background Grid */}
+          <div className="absolute top-0 left-0 w-full h-full bg-grid-white/5 mix-blend-overlay pointer-events-none" />
+          {/* Gradient Glow Orbs */}
+          <div className="absolute -top-10 -right-10 w-40 h-40 bg-gradient-to-br from-blue-500/30 via-purple-500/20 to-transparent rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-gradient-to-br from-emerald-500/20 via-teal-500/10 to-transparent rounded-full blur-3xl pointer-events-none" />
+
+          <div className="relative z-10 w-full flex flex-col md:flex-row justify-between items-center gap-6">
+            <div>
+              <h1 className="text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 leading-tight">
+                Calendrier et Tâches
+              </h1>
+              <p className="text-slate-400 mt-1 text-lg font-light">
+                Planification et suivi des activités.
+                <span className="text-slate-500 ml-1">
+                  {user.role === 'super-admin' ? "(Vue Globale)" : `(Région: ${user.region})`}
+                </span>
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              {user.role === 'super-admin' && (
+                <Button
+                  variant="outline"
+                  onClick={() => navigate('/resources')}
+                  className="bg-white/5 border-white/10 text-slate-300 hover:bg-white/10 hover:text-white transition-all rounded-xl h-10 px-4 font-medium backdrop-blur-sm"
+                >
+                  <FileTextIcon className="mr-2 h-4 w-4" />
+                  Partager Documents
+                </Button>
+              )}
+              {(user.role === 'admin' || user.role === 'super-admin') && (
+                <Button
+                  onClick={handleOpenAddTaskForm}
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg shadow-purple-500/20 rounded-xl h-10 px-6 font-semibold transition-all"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Nouvelle tâche/Réunion
+                </Button>
+              )}
+            </div>
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <Card className="relative overflow-hidden bg-slate-900/60 backdrop-blur-xl border border-white/5 shadow-xl">
+            {/* Gradient accent */}
+            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500" />
+
+            <CardHeader className="border-b border-white/5 pb-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20">
+                    <CalendarIcon className="h-6 w-6 text-blue-400" />
+                  </div>
+                  <CardTitle className="text-3xl font-bold tracking-tight text-white">
+                    {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+                  </CardTitle>
+                </div>
+                <div className="flex items-center space-x-2 bg-slate-800/50 p-1.5 rounded-xl border border-white/5">
+                  <Button variant="ghost" size="icon" onClick={() => navigateMonth(-1)} className="hover:bg-white/10 text-slate-300 hover:text-white rounded-lg">
+                    <ChevronLeft className="h-5 w-5" />
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => setCurrentDate(new Date())} className="hover:bg-white/10 text-slate-300 hover:text-white font-medium px-4 rounded-lg">
+                    Aujourd'hui
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => navigateMonth(1)} className="hover:bg-white/10 text-slate-300 hover:text-white rounded-lg">
+                    <ChevronRight className="h-5 w-5" />
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-6">
+              <CalendarGrid
+                currentDate={currentDate}
+                tasks={tasksForUser}
+                onTaskClick={handleEditTask}
+              />
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {showTaskForm && (
+          <TaskFormModal
+            isOpen={showTaskForm}
+            onClose={() => setShowTaskForm(false)}
+            onSubmit={handleSubmitTask}
+            onDelete={handleDeleteTask}
+            taskData={formData}
+            setTaskData={setFormData}
+            selectedTask={selectedTask}
+            currentUser={user}
+            allUsers={users}
+          />
+        )}
+
+        <UpcomingTasksList tasks={tasksForUser} onTaskClick={handleEditTask} currentUser={user} allUsers={users} />
+      </div>
+    </Layout>
+  );
+};
+
+export default CalendarPage;
