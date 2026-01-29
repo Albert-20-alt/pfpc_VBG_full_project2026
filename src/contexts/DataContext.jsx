@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { api } from '../api';
 import { toast } from '@/components/ui/use-toast';
+import { useAuth } from './AuthContext';
 
 const DataContext = createContext();
 
@@ -18,8 +19,15 @@ export const DataProvider = ({ children }) => {
     const [tasks, setTasks] = useState([]);
     const [loading, setLoading] = useState(true);
 
+    const { user } = useAuth();
+
     // Load data from API - memoized
     const loadData = useCallback(async () => {
+        if (!user) {
+            setLoading(false);
+            return;
+        }
+
         try {
             setLoading(true);
             const [fetchedUsers, fetchedCases, fetchedTasks] = await Promise.all([
@@ -36,11 +44,13 @@ export const DataProvider = ({ children }) => {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [user]);
 
     useEffect(() => {
-        loadData();
-    }, [loadData]);
+        if (user) {
+            loadData();
+        }
+    }, [loadData, user]);
 
     // Case Management - memoized
     const addCase = useCallback(async (newCase) => {
