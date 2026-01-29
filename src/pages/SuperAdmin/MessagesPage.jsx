@@ -52,11 +52,7 @@ const MessagesPage = () => {
     const fetchMessages = async () => {
         setLoading(true);
         try {
-            const res = await fetch('http://localhost:5000/api/messages', {
-                headers: { 'Authorization': `Bearer ${getToken()}` }
-            });
-            if (!res.ok) throw new Error('Erreur lors du chargement des messages');
-            const data = await res.json();
+            const data = await api.getMessages();
             // Sort by date desc (assuming id or createdAt)
             const sorted = Array.isArray(data) ? data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) : [];
             setMessages(sorted);
@@ -75,11 +71,7 @@ const MessagesPage = () => {
             try {
                 // Optimistic update
                 setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, status: 'read' } : m));
-
-                await fetch(`http://localhost:5000/api/messages/${msg.id}/read`, {
-                    method: 'PUT',
-                    headers: { 'Authorization': `Bearer ${getToken()}` }
-                });
+                await api.markMessageRead(msg.id);
             } catch (err) {
                 console.error("Failed to mark read", err);
             }
@@ -95,15 +87,10 @@ const MessagesPage = () => {
         if (!deleteId) return;
 
         try {
-            const res = await fetch(`http://localhost:5000/api/messages/${deleteId}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${getToken()}` }
-            });
-            if (res.ok) {
-                setMessages(prev => prev.filter(m => m.id !== deleteId));
-                toast({ title: "Message supprimé", className: "bg-green-600 text-white" });
-                if (selectedMessage?.id === deleteId) setIsDetailOpen(false);
-            }
+            await api.deleteMessage(deleteId);
+            setMessages(prev => prev.filter(m => m.id !== deleteId));
+            toast({ title: "Message supprimé", className: "bg-green-600 text-white" });
+            if (selectedMessage?.id === deleteId) setIsDetailOpen(false);
         } catch (error) {
             toast({ title: "Erreur", description: "Impossible de supprimer le message.", variant: "destructive" });
         } finally {
