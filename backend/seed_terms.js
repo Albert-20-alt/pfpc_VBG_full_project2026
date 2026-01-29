@@ -40,18 +40,57 @@ const termsContent = `
 <p>Pour toute question concernant ces conditions, veuillez nous contacter via la page <a href="/contact">Contact</a>.</p>
 `;
 
+const privacyContent = `
+<h1>Politique de Confidentialité de la Plateforme PFPC VBG</h1>
+<p>Dernière mise à jour : 23 Janvier 2026</p>
+
+<h2>1. Collecte des Données</h2>
+<p>Nous collectons les informations nécessaires à la gestion des cas de VBG, incluant :</p>
+<ul>
+    <li>Informations d'identification des victimes (nom, âge, contact) - Accès restreint.</li>
+    <li>Détails des incidents (type de violence, lieu, date).</li>
+    <li>Dossiers de suivi et actions entreprises.</li>
+</ul>
+
+<h2>2. Utilisation des Données</h2>
+<p>Les données collectées sont utilisées exclusivement pour :</p>
+<ul>
+    <li>La prise en charge et l'accompagnement des survivant(e)s.</li>
+    <li>La coordination entre les services compétents (santé, justice, action sociale).</li>
+    <li>L'établissement de statistiques anonymisées pour le pilotage national.</li>
+</ul>
+
+<h2>3. Sécurité des Données</h2>
+<p>Nous mettons en œuvre des mesures de sécurité techniques et organisationnelles robustes pour protéger vos données contre tout accès non autorisé, modification, divulgation ou destruction.</p>
+
+<h2>4. Partage des Données</h2>
+<p>Les données personnelles ne sont partagées qu'avec les acteurs directement impliqués dans la prise en charge du cas, dans le strict respect du secret professionnel.</p>
+
+<h2>5. Vos Droits</h2>
+<p>Conformément à la législation en vigueur sur la protection des données personnelles, vous disposez d'un droit d'accès, de rectification et de suppression de vos données.</p>
+`;
+
 async function seedContent() {
     try {
         await sequelize.authenticate();
         console.log('Connexion établie.');
 
+        // Seed Terms
         await SiteContent.upsert({
             key: 'terms_of_service',
             content: termsContent,
             lastUpdated: new Date()
         });
+        console.log("Conditions d'utilisation mises à jour.");
 
-        console.log('Contenu des Conditions d\'utilisation mis à jour avec succès.');
+        // Seed Privacy
+        await SiteContent.upsert({
+            key: 'privacy_policy',
+            content: privacyContent,
+            lastUpdated: new Date()
+        });
+        console.log("Politique de confidentialité mise à jour.");
+
     } catch (error) {
         console.error('Erreur lors de la mise à jour du contenu:', error);
     } finally {
