@@ -68,7 +68,16 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use('/uploads', express.static('uploads'));
 
 // Connexion à MySQL
-require('./models/SiteContent'); // Ensure model is loaded before sync
+// Connexion à MySQL
+require('./models/User');
+require('./models/Case');
+require('./models/Task');
+require('./models/Resource');
+require('./models/Message');
+require('./models/Document');
+require('./models/SiteContent');
+require('./models/AuditLog');
+
 sequelize.sync() // Removed { alter: true } to prevent index duplication bug
   .then(() => console.log('MySQL connecté et tables synchronisées'))
   .catch(err => console.error('Erreur MySQL :', err));
