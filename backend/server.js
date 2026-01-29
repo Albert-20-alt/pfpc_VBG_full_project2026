@@ -30,7 +30,8 @@ const corsOptions = {
       'http://localhost:5174', // Vite alternate
       'http://localhost:5175', // Vite alternate
       'http://localhost:3000', // React default
-      'http://127.0.0.1:5173'
+      'http://127.0.0.1:5173',
+      'https://www.fbariss.com'
     ];
 
     if (allowedOrigins.indexOf(origin) !== -1 || !process.env.FRONTEND_URL) {
