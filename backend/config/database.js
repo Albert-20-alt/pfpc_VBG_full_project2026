@@ -10,9 +10,8 @@ const sequelize = new Sequelize(
         port: process.env.DB_PORT,
         dialect: 'mysql',
         logging: false, // Set to console.log to see SQL queries
-        dialectOptions: {
-            socketPath: process.env.DB_SOCKET_PATH || '/Applications/MAMP/tmp/mysql/mysql.sock'
-        }
+        socketPath: process.env.DB_SOCKET_PATH || undefined
+    }
     }
 );
 
