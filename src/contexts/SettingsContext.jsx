@@ -41,16 +41,7 @@ export const SettingsProvider = ({ children }) => {
             link.type = 'image/x-icon';
             link.rel = 'icon';
             // Determine if the URL is absolute or relative
-            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-            // Only prepend API URL if it's a relative path from uploads, assuming API serves uploads statically or via route
-            // Inspecting SystemSettingsPage logic:
-            // src={`${import.meta.env.VITE_API_URL.replace('/api', '')}${settings.logoUrl}`}
-
-            // The upload endpoint returns `/uploads/filename`.
-            // The API URL is `.../api`.
-            // We need to strip `/api` from `VITE_API_URL` to get the base URL.
-
-            const baseUrl = apiUrl.replace(/\/api\/?$/, '');
+            const baseUrl = import.meta.env.PROD ? '' : (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/api\/?$/, '');
 
             // Check if faviconUrl already contains http
             let href = settings.faviconUrl;
