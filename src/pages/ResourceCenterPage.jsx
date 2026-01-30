@@ -25,10 +25,7 @@ import { Label } from "@/components/ui/label";
 import { Plus, Trash2 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 
-const API_ROOT = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-// Assuming /uploads is served at root: http://localhost:5000/uploads
-// If API_URL is http://localhost:5000/api, then root is http://localhost:5000
-const BASE_URL = API_ROOT.replace('/api', '');
+const BASE_URL = import.meta.env.PROD ? '' : (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace('/api', '');
 
 const ResourceCenterPage = () => {
   const { user } = useAuth();
