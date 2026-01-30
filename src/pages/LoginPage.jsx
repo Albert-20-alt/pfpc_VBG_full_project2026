@@ -14,7 +14,7 @@ import Layout from '@/components/Layout';
 import { useSettings } from '@/contexts/SettingsContext';
 
 const DEFAULT_LOGO_URL = "https://storage.googleapis.com/hostinger-horizons-assets-prod/5e35826e-25c3-4875-8798-5c8c9f39c0c4/dfc81b5213d93d1d72a68fe20443a381.png";
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = import.meta.env.PROD ? '/api' : (import.meta.env.VITE_API_URL || 'http://localhost:5000/api');
 
 const LoginPage = () => {
   const { settings } = useSettings();
