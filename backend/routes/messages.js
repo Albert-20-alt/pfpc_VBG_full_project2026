@@ -29,6 +29,7 @@ router.post('/', async (req, res) => {
 // GET /api/messages - Get all messages (Protected: SuperAdmin only)
 router.get('/', async (req, res) => {
     try {
+        console.log('[DEBUG] GET /messages hit');
         // Auth check manually since middleware isn't global
         const token = req.header('Authorization')?.replace('Bearer ', '');
         if (!token) return res.status(401).json({ error: 'Accès refusé' });
