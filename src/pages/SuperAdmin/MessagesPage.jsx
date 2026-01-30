@@ -114,7 +114,7 @@ const MessagesPage = () => {
                                 <div className="p-3 bg-blue-500/10 rounded-xl border border-blue-500/20">
                                     <Mail className="w-8 h-8 text-blue-400" />
                                 </div>
-                                <h1 className="text-3xl font-bold text-white">Messagerie</h1>
+                                <h1 className="text-3xl font-bold text-white">Messagerie (v2)</h1>
                             </div>
                             {messages.filter(m => m.status === 'unread').length > 0 && (
                                 <Badge variant="secondary" className="self-start md:self-center bg-blue-500/20 text-blue-300 border border-blue-500/30 px-3 py-1 text-sm">
