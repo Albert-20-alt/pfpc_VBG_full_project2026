@@ -34,6 +34,8 @@ const MessagesPage = React.lazy(() => import('@/pages/SuperAdmin/MessagesPage'))
 
 const ProfilePage = React.lazy(() => import('@/pages/ProfilePage'));
 
+import ErrorBoundary from '@/components/ErrorBoundary';
+
 function App() {
   return (
     <AuthProvider>
@@ -41,120 +43,122 @@ function App() {
         <SettingsProvider>
           <Router>
             <React.Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-32 w-32 border-b-2 border-white"></div></div>}>
-              <div className="min-h-screen">
-                <Routes>
-                  <Route path="/" element={<HomePage />} />
-                  <Route path="/about" element={<AboutPage />} />
-                  <Route path="/privacy" element={<PrivacyPage />} />
-                  <Route path="/terms" element={<TermsPage />} />
-                  <Route path="/contact" element={<ContactPage />} />
-                  <Route path="/login" element={<LoginPage />} />
-                  <Route path="/dashboard" element={
-                    <ProtectedRoute>
-                      <Dashboard />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/form" element={
-                    <ProtectedRoute>
-                      <FormPage />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/form/upload" element={
-                    <ProtectedRoute>
-                      <DocumentUploadPage />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/analytics" element={
-                    <ProtectedRoute requiredRole={['admin', 'super-admin']}>
-                      <AnalyticsPage />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/users" element={
-                    <ProtectedRoute requiredRole={['super-admin', 'admin']}>
-                      <UsersPage />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/calendar" element={
-                    <ProtectedRoute>
-                      <CalendarPage />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/resources" element={
-                    <ProtectedRoute>
-                      <ResourceCenterPage />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/agent/cases" element={
-                    <ProtectedRoute requiredRole={['agent', 'super-admin', 'admin']}>
-                      <CaseManagementPage />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/superadmin/all-cases" element={
-                    <ProtectedRoute requiredRole="super-admin">
-                      <AllCasesPage />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/admin/agents" element={
-                    <ProtectedRoute requiredRole="admin">
-                      <AgentPerformancePage />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/admin/map" element={
-                    <ProtectedRoute requiredRole={['admin', 'super-admin']}>
-                      <InteractiveMapPage />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/admin/cases" element={
-                    <ProtectedRoute requiredRole={['admin', 'super-admin']}>
-                      <RegionalCasesPage />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/admin/all-cases" element={
-                    <ProtectedRoute requiredRole={['admin', 'super-admin']}>
-                      <RegionalCasesPage />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/superadmin/settings" element={
-                    <ProtectedRoute requiredRole={['admin', 'super-admin']}>
-                      <SystemSettingsPage />
-                    </ProtectedRoute>
-                  } />
+              <ErrorBoundary>
+                <div className="min-h-screen">
+                  <Routes>
+                    <Route path="/" element={<HomePage />} />
+                    <Route path="/about" element={<AboutPage />} />
+                    <Route path="/privacy" element={<PrivacyPage />} />
+                    <Route path="/terms" element={<TermsPage />} />
+                    <Route path="/contact" element={<ContactPage />} />
+                    <Route path="/login" element={<LoginPage />} />
+                    <Route path="/dashboard" element={
+                      <ProtectedRoute>
+                        <Dashboard />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/form" element={
+                      <ProtectedRoute>
+                        <FormPage />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/form/upload" element={
+                      <ProtectedRoute>
+                        <DocumentUploadPage />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/analytics" element={
+                      <ProtectedRoute requiredRole={['admin', 'super-admin']}>
+                        <AnalyticsPage />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/users" element={
+                      <ProtectedRoute requiredRole={['super-admin', 'admin']}>
+                        <UsersPage />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/calendar" element={
+                      <ProtectedRoute>
+                        <CalendarPage />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/resources" element={
+                      <ProtectedRoute>
+                        <ResourceCenterPage />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/agent/cases" element={
+                      <ProtectedRoute requiredRole={['agent', 'super-admin', 'admin']}>
+                        <CaseManagementPage />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/superadmin/all-cases" element={
+                      <ProtectedRoute requiredRole="super-admin">
+                        <AllCasesPage />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/admin/agents" element={
+                      <ProtectedRoute requiredRole="admin">
+                        <AgentPerformancePage />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/admin/map" element={
+                      <ProtectedRoute requiredRole={['admin', 'super-admin']}>
+                        <InteractiveMapPage />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/admin/cases" element={
+                      <ProtectedRoute requiredRole={['admin', 'super-admin']}>
+                        <RegionalCasesPage />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/admin/all-cases" element={
+                      <ProtectedRoute requiredRole={['admin', 'super-admin']}>
+                        <RegionalCasesPage />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/superadmin/settings" element={
+                      <ProtectedRoute requiredRole={['admin', 'super-admin']}>
+                        <SystemSettingsPage />
+                      </ProtectedRoute>
+                    } />
 
-                  <Route path="/superadmin/privacy" element={
-                    <ProtectedRoute requiredRole="super-admin">
-                      <EditPrivacyPage />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/superadmin/tasks" element={
-                    <ProtectedRoute requiredRole="super-admin">
-                      <TaskManagementPage />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/superadmin/terms" element={
-                    <ProtectedRoute requiredRole="super-admin">
-                      <EditTermsPage />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/superadmin/content" element={
-                    <ProtectedRoute requiredRole="super-admin">
-                      <ContentManagement />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/superadmin/messages" element={
-                    <ProtectedRoute requiredRole="super-admin">
-                      <MessagesPage />
-                    </ProtectedRoute>
-                  } />
+                    <Route path="/superadmin/privacy" element={
+                      <ProtectedRoute requiredRole="super-admin">
+                        <EditPrivacyPage />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/superadmin/tasks" element={
+                      <ProtectedRoute requiredRole="super-admin">
+                        <TaskManagementPage />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/superadmin/terms" element={
+                      <ProtectedRoute requiredRole="super-admin">
+                        <EditTermsPage />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/superadmin/content" element={
+                      <ProtectedRoute requiredRole="super-admin">
+                        <ContentManagement />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/superadmin/messages" element={
+                      <ProtectedRoute requiredRole="super-admin">
+                        <MessagesPage />
+                      </ProtectedRoute>
+                    } />
 
-                  <Route path="/profile" element={
-                    <ProtectedRoute>
-                      <ProfilePage />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="*" element={<div className="flex items-center justify-center min-h-screen text-white">404 - Page non trouvée</div>} />
-                </Routes>
-                <Toaster />
-              </div>
+                    <Route path="/profile" element={
+                      <ProtectedRoute>
+                        <ProfilePage />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="*" element={<div className="flex items-center justify-center min-h-screen text-white">404 - Page non trouvée</div>} />
+                  </Routes>
+                  <Toaster />
+                </div>
+              </ErrorBoundary>
             </React.Suspense>
           </Router>
         </SettingsProvider>
