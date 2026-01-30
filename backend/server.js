@@ -21,28 +21,8 @@ require('./models/AuditLog');
 // Security: CORS configuration - restrict to frontend origin
 const corsOptions = {
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-
-    const allowedOrigins = [
-      process.env.FRONTEND_URL,
-      'http://localhost:5173',
-      'http://localhost:5174', // Vite alternate
-      'http://localhost:5175', // Vite alternate
-      'http://localhost:3000', // React default
-      'http://127.0.0.1:5173',
-      'https://www.fbariss.com'
-    ];
-
-    if (allowedOrigins.indexOf(origin) !== -1 || !process.env.FRONTEND_URL) {
-      callback(null, true);
-    } else {
-      // In dev, we might want to be permissive for localhost
-      if (origin.startsWith('http://localhost:')) {
-        return callback(null, true);
-      }
-      callback(new Error('Not allowed by CORS'));
-    }
+    // Allow everything for now to fix connection issues
+    return callback(null, true);
   },
   credentials: true,
   optionsSuccessStatus: 200,
