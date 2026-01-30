@@ -12,6 +12,11 @@ import { toast } from '@/components/ui/use-toast';
 import { Save, Shield, Lock, Bell, Database, Server, Smartphone, Globe, Mail } from 'lucide-react';
 
 
+import { api } from '@/api';
+
+// Safe base URL for images
+const BASE_URL = import.meta.env.PROD ? '' : (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace('/api', '');
+
 const SystemSettingsPage = () => {
   const { refreshSettings } = useSettings();
   const [isLoading, setIsLoading] = useState(false);
@@ -31,13 +36,10 @@ const SystemSettingsPage = () => {
   React.useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/settings`);
-        if (response.ok) {
-          const data = await response.json();
-          // Remove metadata fields if necessary, or just merge
-          const { createdAt, updatedAt, key, ...userSettings } = data;
-          setSettings(prev => ({ ...prev, ...userSettings }));
-        }
+        const data = await api.getSettings();
+        // Remove metadata fields if necessary, or just merge
+        const { createdAt, updatedAt, key, ...userSettings } = data;
+        setSettings(prev => ({ ...prev, ...userSettings }));
       } catch (error) {
         console.error("Failed to load settings:", error);
         toast({
@@ -63,25 +65,15 @@ const SystemSettingsPage = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/settings`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(settings),
-      });
+      await api.updateSettings(settings);
 
-      if (response.ok) {
-        toast({
-          title: "Paramètres sauvegardés",
-          description: "Les modifications ont été appliquées avec succès au système.",
-          className: "bg-green-500 text-white border-none"
-        });
-        // Refresh global settings to update favicon etc.
-        refreshSettings();
-      } else {
-        throw new Error('Failed to save');
-      }
+      toast({
+        title: "Paramètres sauvegardés",
+        description: "Les modifications ont été appliquées avec succès au système.",
+        className: "bg-green-500 text-white border-none"
+      });
+      // Refresh global settings to update favicon etc.
+      refreshSettings();
     } catch (error) {
       console.error("Error saving settings:", error);
       toast({
@@ -102,21 +94,12 @@ const SystemSettingsPage = () => {
     formData.append('file', file);
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/upload`, {
-        method: 'POST',
-        body: formData,
+      const data = await api.uploadFile(formData);
+      setSettings(prev => ({ ...prev, [field]: data.url }));
+      toast({
+        title: "Fichier téléchargé",
+        description: "Le fichier a été téléchargé avec succès. N'oubliez pas de sauvegarder.",
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        setSettings(prev => ({ ...prev, [field]: data.url }));
-        toast({
-          title: "Fichier téléchargé",
-          description: "Le fichier a été téléchargé avec succès. N'oubliez pas de sauvegarder.",
-        });
-      } else {
-        throw new Error('Upload failed');
-      }
     } catch (error) {
       console.error("Upload error details:", error);
       toast({
@@ -193,7 +176,7 @@ const SystemSettingsPage = () => {
                     <div className="flex items-center gap-4">
                       {settings.logoUrl ? (
                         <div className="h-16 w-16 bg-slate-800 rounded-lg flex items-center justify-center p-2 border border-white/10">
-                          <img src={`${import.meta.env.VITE_API_URL.replace('/api', '')}${settings.logoUrl}`} alt="Logo" className="max-h-full max-w-full object-contain" />
+                          <img src={`${BASE_URL}${settings.logoUrl}`} alt="Logo" className="max-h-full max-w-full object-contain" />
                         </div>
                       ) : (
                         <div className="h-16 w-16 bg-slate-800 rounded-lg flex items-center justify-center border border-white/10 border-dashed">
@@ -218,7 +201,7 @@ const SystemSettingsPage = () => {
                     <div className="flex items-center gap-4">
                       {settings.faviconUrl ? (
                         <div className="h-12 w-12 bg-slate-800 rounded-lg flex items-center justify-center p-2 border border-white/10">
-                          <img src={`${import.meta.env.VITE_API_URL.replace('/api', '')}${settings.faviconUrl}`} alt="Favicon" className="max-h-full max-w-full object-contain" />
+                          <img src={`${BASE_URL}${settings.faviconUrl}`} alt="Favicon" className="max-h-full max-w-full object-contain" />
                         </div>
                       ) : (
                         <div className="h-12 w-12 bg-slate-800 rounded-lg flex items-center justify-center border border-white/10 border-dashed">

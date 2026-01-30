@@ -264,6 +264,19 @@ export const api = {
         return res.json();
     },
 
+    updateSettings: async (settingsData) => {
+        const res = await fetch(`${API_URL}/settings`, {
+            method: 'PUT',
+            headers: getHeaders(),
+            body: JSON.stringify(settingsData)
+        });
+        if (!res.ok) {
+            const error = await res.json();
+            throw new Error(error.error || 'Failed to save settings');
+        }
+        return res.json();
+    },
+
     // Documents (Real Case Evidence)
     createDocument: async (formData) => {
         const token = localStorage.getItem('token');
