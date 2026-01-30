@@ -33,6 +33,12 @@ const AdminDashboard = () => {
   const { cases = [], users: allUsers = [], loading } = useData();
   const navigate = useNavigate();
 
+  // ... hooks continue ...
+
+  const handleViewCriticalAlerts = () => {
+    toast({ title: "🚧 Fonctionnalité en cours de développement", description: "La vue détaillée des alertes critiques sera bientôt disponible." });
+  };
+
   if (loading) {
     return <div className="flex items-center justify-center h-full text-white">Chargement des données...</div>;
   }
@@ -46,159 +52,6 @@ const AdminDashboard = () => {
       </div>
     );
   }
-
-  const regionalCases = useMemo(() => {
-    if (!cases || !user?.region || !Array.isArray(cases)) return [];
-    return cases.filter(c => c.victimRegion === user.region);
-  }, [cases, user]);
-
-  const regionalAgents = useMemo(() => {
-    if (!allUsers || !user?.region) return 0;
-    return allUsers.filter(u => u.role === 'agent' && u.region === user.region && u.status === 'active').length;
-  }, [allUsers, user]);
-
-  const casesByCommune = useMemo(() => {
-    const counts = regionalCases.reduce((acc, curr) => {
-      const commune = curr.victimCommune || 'Non spécifiée';
-      acc[commune] = (acc[commune] || 0) + 1;
-      return acc;
-    }, {});
-    return Object.entries(counts)
-      .map(([name, value]) => ({ name, cases: value }))
-      .sort((a, b) => b.cases - a.cases)
-      .slice(0, 5); // Top 5 communes
-  }, [regionalCases]);
-
-  const violenceTypeData = useMemo(() => {
-    const counts = regionalCases.reduce((acc, curr) => {
-      acc[curr.violenceType] = (acc[curr.violenceType] || 0) + 1;
-      return acc;
-    }, {});
-    const colors = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#00C49F'];
-    return Object.entries(counts)
-      .map(([name, value], index) => ({ name, value, color: colors[index % colors.length] }))
-      .sort((a, b) => b.value - a.value);
-  }, [regionalCases]);
-
-  const agentPerformanceData = useMemo(() => {
-    // Get IDs of agents that belong to THIS region
-    const regionalAgentIds = new Set(
-      allUsers
-        .filter(u => u.role === 'agent' && u.region === user.region)
-        .map(u => String(u.id))
-    );
-
-    // Get IDs of Super Admins
-    const superAdminIds = new Set(allUsers.filter(u => u.role === 'super-admin').map(u => String(u.id)));
-
-    const counts = regionalCases.reduce((acc, c) => {
-      // Only include if the agent is actually from this region OR is a super admin
-      if (c.agentId) {
-        const agId = String(c.agentId);
-        if (!regionalAgentIds.has(agId) && !superAdminIds.has(agId)) {
-          return acc;
-        }
-      }
-
-      const agent = c.agentName || `Agent ${c.agentId}` || 'Inconnu';
-      acc[agent] = (acc[agent] || 0) + 1;
-      return acc;
-    }, {});
-
-    return Object.entries(counts)
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value);
-  }, [regionalCases, allUsers, user.region]);
-
-  const stats = [
-    {
-      title: 'Dossiers Régionaux',
-      value: regionalCases.length,
-      change: '+12%',
-      trend: 'up',
-      icon: FileText,
-      color: 'text-blue-400',
-      bg: 'from-blue-500/20 to-blue-600/5',
-      glow: 'group-hover:shadow-blue-500/20'
-    },
-    {
-      title: 'Agents Actifs',
-      value: regionalAgents,
-      change: '+5%',
-      trend: 'up',
-      icon: Users,
-      color: 'text-emerald-400',
-      bg: 'from-emerald-500/20 to-emerald-600/5',
-      glow: 'group-hover:shadow-emerald-500/20'
-    },
-    {
-      title: 'Alertes Critiques',
-      value: regionalCases.filter(c => c.status === 'pending' && new Date(c.submittedAt) < new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)).length,
-      change: 'Action requise',
-      trend: 'down',
-      icon: ShieldAlert,
-      color: 'text-red-400',
-      bg: 'from-red-500/20 to-red-600/5',
-      glow: 'group-hover:shadow-red-500/20'
-    },
-    {
-      title: 'Taux Résolution',
-      value: `${regionalCases.length > 0 ? ((regionalCases.filter(c => c.status === 'completed').length / regionalCases.length) * 100).toFixed(0) : 0}%`,
-      change: '+2%',
-      trend: 'up',
-      icon: TrendingUp,
-      color: 'text-purple-400',
-      bg: 'from-purple-500/20 to-purple-600/5',
-      glow: 'group-hover:shadow-purple-500/20'
-    }
-  ];
-
-  const { tasks = [] } = useData();
-  const myTasks = useMemo(() => {
-    return tasks.filter(t =>
-      String(t.assignedTo) === String(user.id) ||
-      (t.participants && t.participants.map(String).includes(String(user.id)))
-    );
-  }, [tasks, user.id]);
-
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Bonjour';
-    if (hour < 18) return 'Bon après-midi';
-    return 'Bonsoir';
-  };
-
-  const handleExportReport = () => {
-    const dataToExport = {
-      region: user.region,
-      totalCases: regionalCases.length,
-      casesByCommune,
-      violenceTypeData,
-      exportDate: new Date().toISOString(),
-      casesDetails: regionalCases.map(c => ({
-        id: c.id,
-        date: c.submittedAt,
-        typeViolence: c.violenceType,
-        commune: c.victimCommune,
-        statut: c.status,
-        agent: allUsers.find(u => String(u.id) === String(c.agentId))?.name || 'N/A'
-      }))
-    };
-    const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(dataToExport, null, 2))}`;
-    const link = document.createElement("a");
-    link.href = jsonString;
-    link.download = `rapport_regional_${user.region}_${new Date().toISOString().split('T')[0]}.json`;
-    link.click();
-    toast({ title: "Exportation Réussie", description: "Le rapport régional a été téléchargé." });
-  };
-
-  const viewRegionalCases = () => {
-    navigate('/admin/cases'); // Assuming you create this route and page
-  };
-
-  const handleViewCriticalAlerts = () => {
-    toast({ title: "🚧 Fonctionnalité en cours de développement", description: "La vue détaillée des alertes critiques sera bientôt disponible." });
-  };
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
