@@ -105,7 +105,7 @@ const UserProfileDialog = ({ isOpen, onClose, user, caseCount, onUpdate }) => {
                 <div className="flex flex-col items-center py-6 border-b border-white/5 space-y-4">
                     <div className="relative group">
                         <Avatar className="h-24 w-24 border-4 border-slate-800 shadow-xl">
-                            <AvatarImage src={user.profilePicture ? `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${user.profilePicture}` : `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.email}`} className="object-cover" />
+                            <AvatarImage src={user.profilePicture ? `${import.meta.env.PROD ? '' : (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/api\/?$/, '')}${user.profilePicture}` : `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.email}`} className="object-cover" />
                             <AvatarFallback className="text-2xl bg-slate-800">{user.name?.charAt(0)}</AvatarFallback>
                         </Avatar>
 

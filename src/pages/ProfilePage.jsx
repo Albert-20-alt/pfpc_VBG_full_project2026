@@ -259,7 +259,7 @@ const ProfilePage = () => {
                                         </>
                                     ) : formData.profilePicture ? (
                                         <img
-                                            src={`http://localhost:5000${formData.profilePicture}`}
+                                            src={`${import.meta.env.PROD ? '' : (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/api\/?$/, '')}${formData.profilePicture}`}
                                             alt={formData.name}
                                             className="w-full h-full object-cover"
                                         />
