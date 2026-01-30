@@ -81,12 +81,12 @@ const Layout = ({ children, hideNavbar = false }) => {
       <div className={`flex items-center ${collapsed && !isMobile ? 'justify-center' : 'justify-between'} mb-6`}>
         {!collapsed || isMobile ? (
           <div onClick={() => navigate(user ? '/dashboard' : '/')} className="cursor-pointer flex items-center space-x-2 overflow-hidden">
-            <img src={settings.logoUrl ? `${import.meta.env.VITE_API_URL.replace(/\/api\/?$/, '')}${settings.logoUrl}` : LOGO_URL} alt="Logo Plateforme VBG" className="h-10 w-auto" />
+            <img src={settings.logoUrl ? `${(import.meta.env.VITE_API_URL || '').replace(/\/api\/?$/, '')}${settings.logoUrl}` : LOGO_URL} alt="Logo Plateforme VBG" className="h-10 w-auto" />
             <span className="text-xl font-bold gradient-text whitespace-nowrap">PFPC VBG</span>
           </div>
         ) : (
           <div onClick={() => navigate(user ? '/dashboard' : '/')} className="cursor-pointer">
-            <img src={settings.logoUrl ? `${import.meta.env.VITE_API_URL.replace(/\/api\/?$/, '')}${settings.logoUrl}` : LOGO_URL} alt="Logo Plateforme VBG" className="h-8 w-auto" />
+            <img src={settings.logoUrl ? `${(import.meta.env.VITE_API_URL || '').replace(/\/api\/?$/, '')}${settings.logoUrl}` : LOGO_URL} alt="Logo Plateforme VBG" className="h-8 w-auto" />
           </div>
         )}
 
